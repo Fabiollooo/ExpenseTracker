@@ -1,3 +1,28 @@
+
+<?php
+session_start();
+
+// make sure the expenses list exists
+if (!isset($_SESSION['expenses'])) {
+    $_SESSION['expenses'] = [];
+}
+
+// when form is submitted, add the new expense
+if (isset($_POST['add'])) {
+    $date = $_POST['date'];
+    $category = $_POST['category'];
+    $amount = $_POST['amount'];
+    $note = $_POST['note'];
+
+    $_SESSION['expenses'][] = [
+        'date' => $date,
+        'category' => $category,
+        'amount' => $amount,
+        'note' => $note
+    ];
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +30,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style/style.css">
 </head>
 
 <body>
@@ -37,14 +62,17 @@
       <div class="panel-header">
         <div id="add-expense-title" class="panel-title">Add Expense</div>
       </div>
-      <form>
+
+
+
+      <form action="PHP/processItem.php" method="POST">
         <div class="col-2">
           <label for="date">Date</label>
-          <input id="date" type="date" />
+          <input id="date" type="date" name="date" />
         </div>
         <div class="col-2">
           <label for="category">Category</label>
-          <select id="category">
+          <select id="category" name="category">
             <option>Food</option>
             <option>Transport</option>
             <option>Groceries</option>
@@ -55,14 +83,14 @@
         </div>
         <div>
           <label for="amount">Amount</label>
-          <input id="amount" type="number" step="0.01" placeholder="0.00" />
+          <input id="amount" name="amount" type="number" step="0.01" placeholder="0.00" />
         </div>
         <div class="col-3">
           <label for="note">Note</label>
-          <input id="note" type="text" placeholder="e.g. lunch, bus fare" />
+          <input id="note" name="note" type="text" placeholder="e.g. lunch, bus fare" />
         </div>
         <div class="actions">
-          <button class="btn" type="button">Add</button>
+          <button class="btn" type="submit" name="add_expense">Add</button>
           <button class="btn secondary" type="button">Clear</button>
         </div>
       </form>
@@ -87,6 +115,9 @@
           </select>
         </div>
       </div>
+
+
+
       <div style="overflow:auto">
         <table>
           <thead>
@@ -97,25 +128,10 @@
               <th class="amount">Amount</th>
             </tr>
           </thead>
+
+
           <tbody>
-            <tr>
-              <td>2025-08-12</td>
-              <td><span class="pill">Food</span></td>
-              <td>Lunch</td>
-              <td class="amount">€12.50</td>
-            </tr>
-            <tr>
-              <td>2025-08-12</td>
-              <td><span class="pill">Transport</span></td>
-              <td>Metro</td>
-              <td class="amount">€2.80</td>
-            </tr>
-            <tr>
-              <td>2025-08-14</td>
-              <td><span class="pill">Groceries</span></td>
-              <td>Weekly shop</td>
-              <td class="amount">€45.20</td>
-            </tr>
+            
           </tbody>
         </table>
       </div>
@@ -124,5 +140,7 @@
     <footer>Frontend mockup. Functionality will be added next.</footer>
   </div>
 </body>
+
+
 
 </html>
