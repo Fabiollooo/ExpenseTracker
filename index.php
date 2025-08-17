@@ -1,26 +1,25 @@
-
 <?php
 session_start();
 
-// make sure the expenses list exists
+if(!isset($_SESSION['budget'])) {
+    $_SESSION['budget'] = null;
+}
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_budget'])) {
+    $_SESSION['budget'] = (float) $_POST['budget'];
+    header("Location: index.php");
+    exit();
+}
+
+//implement a reset function
+
+
 if (!isset($_SESSION['expenses'])) {
     $_SESSION['expenses'] = [];
 }
 
-// when form is submitted, add the new expense
-if (isset($_POST['add'])) {
-    $date = $_POST['date'];
-    $category = $_POST['category'];
-    $amount = $_POST['amount'];
-    $note = $_POST['note'];
 
-    $_SESSION['expenses'][] = [
-        'date' => $date,
-        'category' => $category,
-        'amount' => $amount,
-        'note' => $note
-    ];
-}
 ?>
 
 <!DOCTYPE html>
@@ -29,11 +28,22 @@ if (isset($_POST['add'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
-
     <link rel="stylesheet" href="style/style.css">
 </head>
 
 <body>
+  <?php if ($_SESSION['budget'] === null): ?>
+    <div class="overlay">
+      <div class="popup">
+        <h2>Set Monthly Budget</h2>
+        <form method="post">
+          <input type="number" step="0.01" name="budget" placeholder="Enter your budget" required>
+          <button type="submit" name="set_budget">Save</button>
+        </form>
+      </div>
+    </div>
+  <?php endif; ?>
+
   <div class="container">
     <header>
       <div>
@@ -42,6 +52,8 @@ if (isset($_POST['add'])) {
       </div>
       <div class="subtitle">August 2025</div>
     </header>
+
+    <!-- Make these dynamic, user enters the monthly budget, and it updates the values accordingly -->
 
     <section class="cards">
       <div class="card">
@@ -58,21 +70,21 @@ if (isset($_POST['add'])) {
       </div>
     </section>
 
+
+
     <section class="panel" aria-labelledby="add-expense-title">
       <div class="panel-header">
         <div id="add-expense-title" class="panel-title">Add Expense</div>
       </div>
 
-
-
       <form action="PHP/processItem.php" method="POST">
         <div class="col-2">
           <label for="date">Date</label>
-          <input id="date" type="date" name="date" />
+          <input required id="date" type="date" name="date" />
         </div>
         <div class="col-2">
           <label for="category">Category</label>
-          <select id="category" name="category">
+          <select required id="category" name="category">
             <option>Food</option>
             <option>Transport</option>
             <option>Groceries</option>
@@ -83,11 +95,11 @@ if (isset($_POST['add'])) {
         </div>
         <div>
           <label for="amount">Amount</label>
-          <input id="amount" name="amount" type="number" step="0.01" placeholder="0.00" />
+          <input required id="amount" name="amount" type="number" step="0.01" placeholder="0.00" />
         </div>
         <div class="col-3">
           <label for="note">Note</label>
-          <input id="note" name="note" type="text" placeholder="e.g. lunch, bus fare" />
+          <input required id="note" name="note" type="text" placeholder="e.g. lunch, bus fare" />
         </div>
         <div class="actions">
           <button class="btn" type="submit" name="add_expense">Add</button>
@@ -116,8 +128,6 @@ if (isset($_POST['add'])) {
         </div>
       </div>
 
-
-
       <div style="overflow:auto">
         <table>
           <thead>
@@ -128,10 +138,15 @@ if (isset($_POST['add'])) {
               <th class="amount">Amount</th>
             </tr>
           </thead>
-
-
           <tbody>
-            
+            <?php foreach ($_SESSION['expenses'] as $expense): ?>
+              <tr>
+                <td><?php echo htmlspecialchars($expense['date']); ?></td>
+                <td><?php echo htmlspecialchars($expense['category']); ?></td>
+                <td><?php echo htmlspecialchars($expense['note']); ?></td>
+                <td class="amount">€<?php echo number_format($expense['amount'], 2); ?></td>
+              </tr>
+            <?php endforeach; ?>
           </tbody>
         </table>
       </div>
@@ -140,7 +155,4 @@ if (isset($_POST['add'])) {
     <footer>Frontend mockup. Functionality will be added next.</footer>
   </div>
 </body>
-
-
-
 </html>

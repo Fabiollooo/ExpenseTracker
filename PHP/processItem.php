@@ -1,6 +1,9 @@
 <?php
-
+session_start();
 //var_dump($_POST);
+
+
+
 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -10,8 +13,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $amount = htmlspecialchars( $_POST['amount']);
     $note = htmlspecialchars( $_POST['note']);
 
-    echo "Date: $date\n";
-    echo "Category: $category\n";
-    echo "Amount: $amount\n";
-    echo "Note: $note\n";
+    if ($date && $category && $amount) {
+        $_SESSION['expenses'][] = [
+            'date' => $date,
+            'category' => $category,
+            'amount' => $amount,
+            'note' => $note
+        ];
+    }
+
+
+    // redirects the user back to the main page
+    header("Location: ../index.php");
+    exit();
+
+} else {
+    //just in case if the user manages to access this page somehow.
+    header("Location: ../index.php");
+    exit();
 }
