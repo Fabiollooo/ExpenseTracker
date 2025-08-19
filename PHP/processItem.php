@@ -2,10 +2,6 @@
 session_start();
 //var_dump($_POST);
 
-
-
-
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $date = htmlspecialchars( $_POST['date']);

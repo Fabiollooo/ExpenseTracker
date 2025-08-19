@@ -58,15 +58,34 @@ if (!isset($_SESSION['expenses'])) {
     <section class="cards">
       <div class="card">
         <h3>Total Spent</h3>
-        <div class="value">€0.00</div>
+        <div class="value">
+          <?php foreach ($_SESSION['expenses'] as $expense): ?>
+            <?php echo htmlspecialchars($expense['amount']) !== null ? '€' . number_format($expense['amount'], 2) : '€0.00'; ?>
+          <?php endforeach; ?>
+        </div>
       </div>
       <div class="card">
         <h3>Monthly Budget</h3>
-        <div class="value">€1,000.00</div>
+        <div class="value" name="monthly_budget">
+          <?php echo $_SESSION['budget'] !== null ? '€' . number_format($_SESSION['budget'], 2) : '€0.00'; ?>
+        </div>
+        
       </div>
       <div class="card">
         <h3>Remaining</h3>
-        <div class="value">€1,000.00</div>
+        <div class="value">
+          <?php
+            if ($_SESSION['budget'] !== null) {
+              $totalSpent = 0;
+              foreach ($_SESSION['expenses'] as $expense) {
+                $totalSpent += $expense['amount'];
+              }
+              echo '€' . number_format($_SESSION['budget'] - $totalSpent, 2);
+            } else {
+              echo '€0.00';
+            }
+          ?>
+        </div>
       </div>
     </section>
 
@@ -156,3 +175,11 @@ if (!isset($_SESSION['expenses'])) {
   </div>
 </body>
 </html>
+
+
+<!-- 
+NOTES: 
+- Implement some idea on a user possibly spending more than their budget
+- Implement a live date tracker or somthing
+- 
+            -->
