@@ -1,26 +1,39 @@
 <?php
 session_start();
+include 'PHP/Database/db.php';
 
-if(!isset($_SESSION['budget'])) {
+// Reset only if requested
+if (isset($_GET['reset'])) {
+    session_unset();
+    session_destroy();
+    header("Location: index.php");
+    exit;
+}
+
+// Initialize budget if not set
+if (!isset($_SESSION['budget'])) {
     $_SESSION['budget'] = null;
 }
 
-
+// Set budget if submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_budget'])) {
     $_SESSION['budget'] = (float) $_POST['budget'];
     header("Location: index.php");
-    exit();
+    exit;
 }
 
-//implement a reset function
-
-
+// Initialize expenses if not set
 if (!isset($_SESSION['expenses'])) {
     $_SESSION['expenses'] = [];
 }
-
-
 ?>
+
+
+
+
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -51,6 +64,11 @@ if (!isset($_SESSION['expenses'])) {
         <div class="subtitle">Track spending, categories, and monthly totals</div>
       </div>
       <div class="subtitle">August 2025</div>
+      <a href="index.php?reset=1" style="margin-left:20px;color:red;">Reset Session</a>
+      
+      <form action="PHP/Database/reset.php" method="POST">
+        <button class="btn secondary" type="submit">Reset Session</button>
+      </form>
     </header>
 
     <!-- Make these dynamic, user enters the monthly budget, and it updates the values accordingly -->
@@ -117,8 +135,8 @@ if (!isset($_SESSION['expenses'])) {
           <input required id="amount" name="amount" type="number" step="0.01" placeholder="0.00" />
         </div>
         <div class="col-3">
-          <label for="note">Note</label>
-          <input required id="note" name="note" type="text" placeholder="e.g. lunch, bus fare" />
+          <label for="description">Description</label>
+          <input required id="description" name="description" type="text" placeholder="e.g. lunch, bus fare" />
         </div>
         <div class="actions">
           <button class="btn" type="submit" name="add_expense">Add</button>

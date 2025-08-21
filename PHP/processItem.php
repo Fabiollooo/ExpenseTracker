@@ -1,30 +1,24 @@
 <?php
+include 'Database/db.php';
 session_start();
-//var_dump($_POST);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_expense'])) {
 
-    $date = htmlspecialchars( $_POST['date']);
-    $category = htmlspecialchars( $_POST['category']);
-    $amount = htmlspecialchars( $_POST['amount']);
-    $note = htmlspecialchars( $_POST['note']);
+    $category = htmlspecialchars($_POST['category']);
+    $amount = $_POST['amount'];
+    $description = htmlspecialchars($_POST['description']);
+    $date = $_POST['date'];
 
-    if ($date && $category && $amount) {
-        $_SESSION['expenses'][] = [
-            'date' => $date,
-            'category' => $category,
-            'amount' => $amount,
-            'note' => $note
-        ];
+    $stmt = $conn->prepare("INSERT INTO expenses (Category, Amount, Description, Date) VALUES (?, ?, ?, ?)");
+    if (!$stmt){
+        die("Prepare failed: " . $conn->error); 
     }
 
+    $stmt->bind_param("sdss", $category, $amount, $description, $date);
+    $stmt->execute();
+    $stmt->close();
+    $conn->close();
 
-    // redirects the user back to the main page
-    header("Location: ../index.php");
-    exit();
-
-} else {
-    //just in case if the user manages to access this page somehow.
     header("Location: ../index.php");
     exit();
 }
