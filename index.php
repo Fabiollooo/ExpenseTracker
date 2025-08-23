@@ -26,7 +26,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_budget'])) {
 if (!isset($_SESSION['expenses'])) {
     $_SESSION['expenses'] = [];
 }
+
+
+//Filters
+
+$category = $_GET['categoryFilter'] ?? '';
+$sql = "SELECT Date AS date, Category AS category, Description AS description, Amount AS amount FROM expenses";
+if ($category) {
+    $sql .= " WHERE Category = '" . $conn->real_escape_string($category) . "'";
+}
+$result = $conn->query($sql);
+
 ?>
+
 
 
 
@@ -45,6 +57,7 @@ if (!isset($_SESSION['expenses'])) {
 </head>
 
 <body>
+
   <?php if ($_SESSION['budget'] === null): ?>
     <div class="overlay">
       <div class="popup">
@@ -63,23 +76,42 @@ if (!isset($_SESSION['expenses'])) {
         <div class="title">Expense Tracker</div>
         <div class="subtitle">Track spending, categories, and monthly totals</div>
       </div>
-      <div class="subtitle">August 2025</div>
+
+      <div class="subtitle">
+        
+        <p id="date"></p>
+         <script>
+            function updateDate() {
+              const today = new Date();
+              const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+              document.getElementById('date').textContent = today.toLocaleDateString(undefined, options);
+            }
+
+              updateDate(); 
+              setInterval(updateDate, 10000); 
+            </script>
+      </div>
+      
       <a href="index.php?reset=1" style="margin-left:20px;color:red;">Reset Session</a>
       
       <form action="PHP/Database/reset.php" method="POST">
-        <button class="btn secondary" type="submit">Reset Session</button>
+        <button class="btn secondary" type="submit">Reset DB</button>
       </form>
     </header>
 
-    <!-- Make these dynamic, user enters the monthly budget, and it updates the values accordingly -->
+    
 
     <section class="cards">
       <div class="card">
         <h3>Total Spent</h3>
         <div class="value">
-          <?php foreach ($_SESSION['expenses'] as $expense): ?>
-            <?php echo htmlspecialchars($expense['amount']) !== null ? '€' . number_format($expense['amount'], 2) : '€0.00'; ?>
-          <?php endforeach; ?>
+          <?php
+            $sql = "SELECT SUM(Amount) AS total FROM expenses WHERE Date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+            $result = $conn->query($sql);
+            $row = $result->fetch_assoc();
+            $total = $row['total'] !== null ? (float) $row['total'] : 0;
+            echo '€' . number_format($total, 2);
+          ?>
         </div>
       </div>
       <div class="card">
@@ -93,17 +125,14 @@ if (!isset($_SESSION['expenses'])) {
         <h3>Remaining</h3>
         <div class="value">
           <?php
-            if ($_SESSION['budget'] !== null) {
-              $totalSpent = 0;
-              foreach ($_SESSION['expenses'] as $expense) {
-                $totalSpent += $expense['amount'];
-              }
-              echo '€' . number_format($_SESSION['budget'] - $totalSpent, 2);
-            } else {
-              echo '€0.00';
-            }
+            $sumSql = "SELECT SUM(Amount) AS total FROM expenses WHERE Date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+            $sumResult = $conn->query($sumSql);
+            $sumRow = $sumResult->fetch_assoc();
+            $total = $sumRow['total'] !== null ? (float) $sumRow['total'] : 0;
+            $remaining = $_SESSION['budget'] - $total;
+            echo '€' . number_format($remaining, 2);
           ?>
-        </div>
+    </div>
       </div>
     </section>
 
@@ -156,19 +185,26 @@ if (!isset($_SESSION['expenses'])) {
 
 
       <div class="toolbar">
-        <div class="grow"><input type="search" placeholder="Search notes or category" /></div>
-        <div><input type="month" /></div>
-        <div>
-          <select>
-            <option value="">All categories</option>
-            <option>Food</option>
-            <option>Transport</option>
-            <option>Groceries</option>
-            <option>Shopping</option>
-            <option>Bills</option>
-            <option>Other</option>
-          </select>
-        </div>
+        <form method="GET" class="filters-form">
+          <div>
+            <input type="search" name="search" placeholder="Search notes or category" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" />
+          </div>
+          <div>
+            <input type="month" name="month" value="<?php echo htmlspecialchars($_GET['month'] ?? ''); ?>" />
+          </div>
+          
+          <div>
+            <select name="categoryFilter" onchange="this.form.submit()">
+              <option value="" <?php if ($category == '') echo 'selected'; ?>>All categories</option>
+              <option value="Food" <?php if ($category == 'Food') echo 'selected'; ?>>Food</option>
+              <option value="Transport" <?php if ($category == 'Transport') echo 'selected'; ?>>Transport</option>
+              <option value="Groceries" <?php if ($category == 'Groceries') echo 'selected'; ?>>Groceries</option>
+              <option value="Shopping" <?php if ($category == 'Shopping') echo 'selected'; ?>>Shopping</option>
+              <option value="Bills" <?php if ($category == 'Bills') echo 'selected'; ?>>Bills</option>
+              <option value="Other" <?php if ($category == 'Other') echo 'selected'; ?>>Other</option>
+            </select>
+          </div>
+        </form>
       </div>
 
       <div style="overflow:auto">
@@ -183,31 +219,31 @@ if (!isset($_SESSION['expenses'])) {
           </thead>
 
 
+          <!-- Displayes the items from the db -->
           <tbody>
           <?php 
-            $result = $conn->query("SELECT Date AS date, Category AS category, Description AS description, Amount AS amount FROM expenses");
-
-              if ($result->num_rows > 0) {
+            if ($result->num_rows > 0) {
                 while($row = $result->fetch_assoc()) {
-                  echo "<tr>
-                          <td>" . htmlspecialchars($row['date']) . "</td>
-                          <td>" . htmlspecialchars($row['category']) . "</td>
-                          <td>" . htmlspecialchars($row['description']) . "</td>
-                          <td>" . htmlspecialchars($row['amount']) . "</td>
-                        </tr>";
+                    echo "<tr>
+                            <td>" . htmlspecialchars($row['date']) . "</td>
+                            <td>" . htmlspecialchars($row['category']) . "</td>
+                            <td>" . htmlspecialchars($row['description']) . "</td>
+                            <td>" . htmlspecialchars($row['amount']) . "</td>
+                          </tr>";
                 }
-              } else {
+            } else {
                 echo "<tr><td colspan='4'>No expenses recorded.</td></tr>";
-              }
-              $conn->close();
-          ?>
+            }
+            $conn->close();
+            ?>
+
           </tbody>
 
         </table>
       </div>
     </section>
 
-    <footer>Frontend mockup. Functionality will be added next.</footer>
+
   </div>
 </body>
 </html>
