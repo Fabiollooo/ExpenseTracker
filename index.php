@@ -145,10 +145,16 @@ if (!isset($_SESSION['expenses'])) {
       </form>
     </section>
 
+
+
+
+    <!-- Expense History -->
     <section class="panel" style="margin-top: 18px" aria-labelledby="history-title">
       <div class="panel-header">
         <div id="history-title" class="panel-title">Expenses</div>
       </div>
+
+
       <div class="toolbar">
         <div class="grow"><input type="search" placeholder="Search notes or category" /></div>
         <div><input type="month" /></div>
@@ -175,16 +181,28 @@ if (!isset($_SESSION['expenses'])) {
               <th class="amount">Amount</th>
             </tr>
           </thead>
+
+
           <tbody>
-            <?php foreach ($_SESSION['expenses'] as $expense): ?>
-              <tr>
-                <td><?php echo htmlspecialchars($expense['date']); ?></td>
-                <td><?php echo htmlspecialchars($expense['category']); ?></td>
-                <td><?php echo htmlspecialchars($expense['note']); ?></td>
-                <td class="amount">€<?php echo number_format($expense['amount'], 2); ?></td>
-              </tr>
-            <?php endforeach; ?>
+          <?php 
+            $result = $conn->query("SELECT Date AS date, Category AS category, Description AS description, Amount AS amount FROM expenses");
+
+              if ($result->num_rows > 0) {
+                while($row = $result->fetch_assoc()) {
+                  echo "<tr>
+                          <td>" . htmlspecialchars($row['date']) . "</td>
+                          <td>" . htmlspecialchars($row['category']) . "</td>
+                          <td>" . htmlspecialchars($row['description']) . "</td>
+                          <td>" . htmlspecialchars($row['amount']) . "</td>
+                        </tr>";
+                }
+              } else {
+                echo "<tr><td colspan='4'>No expenses recorded.</td></tr>";
+              }
+              $conn->close();
+          ?>
           </tbody>
+
         </table>
       </div>
     </section>
