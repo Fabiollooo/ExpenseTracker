@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_expense'])) {
     $description = htmlspecialchars($_POST['description']);
     $date = $_POST['date'];
 
-    $stmt = $conn->prepare("INSERT INTO expenses (Category, Amount, Description, Date) VALUES (?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO expenses (Category, Amount, Description, `Date`) VALUES (?, ?, ?, ?)");
     if (!$stmt){
         die("Prepare failed: " . $conn->error); 
     }
@@ -20,5 +20,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_expense'])) {
     $conn->close();
 
     header("Location: ../index.php");
+
     exit();
 }
