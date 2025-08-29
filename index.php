@@ -203,29 +203,61 @@ $result = $conn->query($sql);
             <th>Category</th>
             <th>Note</th>
             <th class="amount">Amount</th>
+            <th>Actions</th>
           </tr>
         </thead>
-
         <tbody>
         <?php 
           if ($result->num_rows > 0) {
             while($row = $result->fetch_assoc()) {
-              echo "<tr>
-                      <td>" . htmlspecialchars($row['date']) . "</td>
-                      <td>" . htmlspecialchars($row['category']) . "</td>
-                      <td>" . htmlspecialchars($row['description']) . "</td>
-                      <td>" . htmlspecialchars($row['amount']) . "</td>
-                    </tr>";
+        ?>
+          <tr>
+            <td><?php echo htmlspecialchars($row['date']); ?></td>
+            <td><?php echo htmlspecialchars($row['category']); ?></td>
+            <td><?php echo htmlspecialchars($row['description']); ?></td>
+            <td class="amount"><?php echo '€' . number_format($row['amount'], 2); ?></td>
+            <td>
+              <div class="expense-actions">
+                <form action="PHP/editExpense.php" method="GET">
+                  <input type="hidden" name="date" value="<?php echo htmlspecialchars($row['date']); ?>">
+                  <input type="hidden" name="category" value="<?php echo htmlspecialchars($row['category']); ?>">
+                  <input type="hidden" name="description" value="<?php echo htmlspecialchars($row['description']); ?>">
+                  <input type="hidden" name="amount" value="<?php echo htmlspecialchars($row['amount']); ?>">
+                  <button class="btn secondary" type="submit">Edit</button>
+                </form>
+                <form action="PHP/deleteExpense.php" method="POST" onsubmit="return confirm('Delete this expense?');">
+                  <input type="hidden" name="date" value="<?php echo htmlspecialchars($row['date']); ?>">
+                  <input type="hidden" name="category" value="<?php echo htmlspecialchars($row['category']); ?>">
+                  <input type="hidden" name="description" value="<?php echo htmlspecialchars($row['description']); ?>">
+                  <input type="hidden" name="amount" value="<?php echo htmlspecialchars($row['amount']); ?>">
+                  <button class="btn secondary" type="submit">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <?php 
             }
           } else {
-            echo "<tr><td colspan='4'>No expenses recorded.</td></tr>";
+            echo '<tr><td colspan="5">No expenses found.</td></tr>';
           }
-          $conn->close();
         ?>
         </tbody>
-
       </table>
-    </div>
+
+        <div class="total-expenses">
+          <p>
+            Total Expenses: 
+           <?php
+            $sqlTotal = "SELECT SUM(Amount) AS total FROM expenses WHERE Date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+            $resTotal = $conn->query($sqlTotal);
+            $rowTotal = $resTotal->fetch_assoc();
+            $total = $rowTotal['total'] !== null ? (float) $rowTotal['total'] : 0;
+            echo '€' . number_format($total, 2);
+          ?>
+          </p>
+        </div>
+        
+      </div>
   </section>
 </div>
 </body>
