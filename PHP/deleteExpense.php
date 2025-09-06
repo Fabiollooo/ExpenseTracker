@@ -1,17 +1,23 @@
 <?php
-
 include 'Database/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $date = $_POST['date'];
     $category = $_POST['category'];
-    $description = $_POST['description'];
+    $title = $_POST['description'];
     $amount = $_POST['amount'];
 
-    $sql = "DELETE FROM expenses WHERE Date=? AND Category=? AND Description=? AND Amount=?";
+    $sql = "DELETE FROM expenses WHERE date=? AND category=? AND title=? AND amount=?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssss", $date, $category, $description, $amount);
+    
+    if (!$stmt) {
+        die("Prepare failed: " . $conn->error);
+    }
+
+
+    $stmt->bind_param("sssd", $date, $category, $title, $amount);
     $stmt->execute();
+    $stmt->close();
 }
 
 header("Location: ../index.php");

@@ -1,53 +1,59 @@
 <?php
 session_start();
-include 'PHP/Database/db.php';
+include 'PHP/Database/db.php'; 
 
-if (isset($_GET['reset'])) {
-    session_unset();
-    session_destroy();
-    header("Location: index.php");
-    exit;
-}
+    // Handle reset
+    if (isset($_GET['reset'])) {
+        session_unset();
+        session_destroy();
+        header("Location: index.php");
+        exit;
+    }
 
-if (!isset($_SESSION['budget'])) {
-    $_SESSION['budget'] = null;
-}
+    // Initialize session variables
+    if (!isset($_SESSION['budget'])) {
+        $_SESSION['budget'] = null;
+    }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_budget'])) {
-    $_SESSION['budget'] = (float) $_POST['budget'];
-    header("Location: index.php");
-    exit;
-}
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_budget'])) {
+        $_SESSION['budget'] = (float) $_POST['budget'];
+        header("Location: index.php");
+        exit;
+    }
 
-if (!isset($_SESSION['expenses'])) {
-    $_SESSION['expenses'] = [];
-}
+    if (!isset($_SESSION['expenses'])) {
+        $_SESSION['expenses'] = [];
+    }
 
-// Filters
-$category = $_GET['categoryFilter'] ?? '';
-$month = $_GET['month'] ?? '';
-$search = $_GET['search'] ?? '';
+    // Filters
+    $category = $_GET['categoryFilter'] ?? '';
+    $month = $_GET['month'] ?? '';
+    $search = $_GET['search'] ?? '';
 
-$sql = "SELECT Date AS date, Category AS category, Description AS description, Amount AS amount FROM expenses WHERE 1=1";
 
-if ($category) {
-    $sql .= " AND Category = '" . $conn->real_escape_string($category) . "'";
-}
+    $sql = "SELECT Date AS date, Category AS category, title AS description, Amount AS amount FROM expenses WHERE 1=1";
 
-if ($month) {
-    $month = $conn->real_escape_string($month);
-    $sql .= " AND DATE_FORMAT(Date, '%Y-%m') = '$month'";
-}
+    // Add filters dynamically
+    if ($category) {
+        $sql .= " AND Category = '" . $conn->real_escape_string($category) . "'";
+    }
 
-if ($search) {
-    $search = $conn->real_escape_string($search);
-    $sql .= " AND (Description LIKE '%$search%' OR Category LIKE '%$search%')";
-}
+    if ($month) {
+        $month = $conn->real_escape_string($month);
+        $sql .= " AND DATE_FORMAT(Date, '%Y-%m') = '$month'";
+    }
 
-$sql .= " ORDER BY Date DESC";
+    if ($search) {
+        $search = $conn->real_escape_string($search);
+        $sql .= " AND (title LIKE '%$search%' OR Category LIKE '%$search%')";
+    }
 
-$result = $conn->query($sql);
+    $sql .= " ORDER BY Date DESC";
+
+    // Execute query
+    $result = $conn->query($sql);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -94,9 +100,14 @@ $result = $conn->query($sql);
     
     <a href="index.php?reset=1" style="margin-left:20px;color:red;">Reset Session</a>
     
-    <form action="PHP/Database/reset.php" method="POST">
-      <button class="btn secondary" type="submit">Reset DB</button>
-    </form>
+      <form action="PHP/Database/reset.php" method="POST">
+        <button class="btn secondary" type="submit">Reset DB</button>
+      </form>
+      
+      <form method="GET" action="PHP/Database/setup_db.php" target="_blank">
+        <button type="submit">Setup Database</button>
+      </form>
+
   </header>
 
   <section class="cards">

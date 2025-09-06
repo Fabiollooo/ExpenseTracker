@@ -6,20 +6,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_expense'])) {
 
     $category = htmlspecialchars($_POST['category']);
     $amount = $_POST['amount'];
-    $description = htmlspecialchars($_POST['description']);
+    $title = htmlspecialchars($_POST['description']);
     $date = $_POST['date'];
 
-    $stmt = $conn->prepare("INSERT INTO expenses (Category, Amount, Description, `Date`) VALUES (?, ?, ?, ?)");
+    
+    $stmt = $conn->prepare("INSERT INTO expenses (category, amount, title, date) VALUES (?, ?, ?, ?)");
+    
     if (!$stmt){
         die("Prepare failed: " . $conn->error); 
     }
 
-    $stmt->bind_param("sdss", $category, $amount, $description, $date);
+    $stmt->bind_param("sdss", $category, $amount, $title, $date);
     $stmt->execute();
     $stmt->close();
     $conn->close();
 
     header("Location: ../index.php");
-
     exit();
 }
+?>
